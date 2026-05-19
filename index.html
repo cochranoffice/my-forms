@@ -1,157 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Form Dashboard</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
-            margin: 0;
-            padding: 40px 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: #1a73e8;
-            margin-bottom: 30px;
-        }
-        .input-section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            display: flex;
-            gap: 10px;
-        }
-        input {
-            padding: 10px;
-            border: 1px solid #dadce0;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        input[type="text"] { flex: 2; }
-        input[type="url"] { flex: 3; }
-        button {
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover { background-color: #1557b0; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 100px;
-            position: relative;
-        }
-        .card a {
-            color: #1a73e8;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 16px;
-            margin-bottom: 20px;
-            word-break: break-word;
-        }
-        .card a:hover { text-decoration: underline; }
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #d93025;
-            cursor: pointer;
-            font-size: 12px;
-            align-self: flex-end;
-            padding: 0;
-        }
-        .delete-btn:hover { text-decoration: underline; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cochran Forms Dashboard</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #1a73e8;
+      margin-bottom: 8px;
+    }
+
+    .note {
+      color: #666;
+      margin-bottom: 24px;
+      font-size: 15px;
+    }
+
+    .toolbar {
+      background: white;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid #dadce0;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      min-height: 105px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 5px solid #1a73e8;
+    }
+
+    .card a {
+      color: #1a73e8;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 17px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .card a:hover {
+      text-decoration: underline;
+    }
+
+    .category {
+      color: #777;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .section-title {
+      margin: 26px 0 12px;
+      color: #444;
+      font-size: 18px;
+    }
+
+    .message {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .error {
+      color: #b00020;
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📋 My Forms Dashboard</h1>
-    
-    <div class="input-section">
-        <input type="text" id="formName" placeholder="Form Name (e.g., Expense Tracker)">
-        <input type="url" id="formUrl" placeholder="Paste Form URL here...">
-        <button onclick="addForm()">Add Form</button>
-    </div>
+  <h1>📋 Cochran Forms Dashboard</h1>
+  <p class="note">Quick links to office forms. Add or edit forms in the Google Sheet, then refresh this page.</p>
 
-    <div class="grid" id="formsGrid"></div>
+  <div class="toolbar">
+    <input type="text" id="searchInput" placeholder="Search forms...">
+  </div>
+
+  <div id="formsArea">
+    <div class="message">Loading forms...</div>
+  </div>
 </div>
 
 <script>
-    // Load links from LocalStorage when page opens
-    document.addEventListener("DOMContentLoaded", displayForms);
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl-p5DzRd54AUDAp4rRT3v00Ud9V8oOsErphobnoSUZeVmDuyFS9rNtHfe9O8Rg-zoNts4_4rGBt1e/pub?gid=0&single=true&output=csv";
 
-    function addForm() {
-        const nameInput = document.getElementById('formName');
-        const urlInput = document.getElementById('formUrl');
-        
-        const name = nameInput.value.trim();
-        const url = urlInput.value.trim();
+  let allForms = [];
 
-        if (!name || !url) {
-            alert("Please enter both a name and a URL.");
-            return;
+  document.getElementById("searchInput").addEventListener("input", renderForms);
+
+  async function loadForms() {
+    const formsArea = document.getElementById("formsArea");
+
+    try {
+      const response = await fetch(SHEET_CSV_URL + "&cacheBust=" + Date.now());
+
+      if (!response.ok) {
+        throw new Error("Could not load Google Sheet CSV.");
+      }
+
+      const csvText = await response.text();
+
+      allForms = parseCSV(csvText)
+        .filter(row => row.Name && row.URL)
+        .map(row => ({
+          name: row.Name.trim(),
+          url: row.URL.trim(),
+          category: row.Category ? row.Category.trim() : "Forms"
+        }));
+
+      renderForms();
+
+    } catch (error) {
+      formsArea.innerHTML = `
+        <div class="message error">
+          Forms could not be loaded. Check that the Google Sheet has columns named Name, URL, and Category.
+        </div>
+      `;
+      console.error(error);
+    }
+  }
+
+  function renderForms() {
+    const formsArea = document.getElementById("formsArea");
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+
+    const filteredForms = allForms.filter(form => {
+      return (
+        form.name.toLowerCase().includes(searchTerm) ||
+        form.category.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    if (filteredForms.length === 0) {
+      formsArea.innerHTML = '<div class="message">No matching forms found.</div>';
+      return;
+    }
+
+    const grouped = {};
+
+    filteredForms.forEach(form => {
+      if (!grouped[form.category]) {
+        grouped[form.category] = [];
+      }
+      grouped[form.category].push(form);
+    });
+
+    formsArea.innerHTML = "";
+
+    Object.keys(grouped).sort().forEach(category => {
+      const section = document.createElement("section");
+
+      const title = document.createElement("h2");
+      title.className = "section-title";
+      title.textContent = category;
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      grouped[category].forEach(form => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const link = document.createElement("a");
+        link.href = form.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = form.name;
+
+        const categoryLabel = document.createElement("div");
+        categoryLabel.className = "category";
+        categoryLabel.textContent = form.category;
+
+        card.appendChild(link);
+        card.appendChild(categoryLabel);
+        grid.appendChild(card);
+      });
+
+      section.appendChild(title);
+      section.appendChild(grid);
+      formsArea.appendChild(section);
+    });
+  }
+
+  function parseCSV(text) {
+    const rows = [];
+    let currentRow = [];
+    let currentValue = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"' && insideQuotes && nextChar === '"') {
+        currentValue += '"';
+        i++;
+      } else if (char === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (char === "," && !insideQuotes) {
+        currentRow.push(currentValue);
+        currentValue = "";
+      } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+        if (currentValue || currentRow.length > 0) {
+          currentRow.push(currentValue);
+          rows.push(currentRow);
+          currentRow = [];
+          currentValue = "";
         }
-
-        const newForm = { name, url };
-
-        // Get existing forms or initialize empty array
-        let forms = JSON.parse(localStorage.getItem('myDashboardForms')) || [];
-        forms.push(newForm);
-
-        // Save back to local storage
-        localStorage.setItem('myDashboardForms', JSON.stringify(forms));
-
-        // Clear inputs and refresh list
-        nameInput.value = '';
-        urlInput.value = '';
-        displayForms();
+        if (char === "\r" && nextChar === "\n") {
+          i++;
+        }
+      } else {
+        currentValue += char;
+      }
     }
 
-    function displayForms() {
-        const grid = document.getElementById('formsGrid');
-        grid.innerHTML = ''; // Clear current display
-        
-        const forms = JSON.parse(localStorage.getItem('myDashboardForms')) || [];
-
-        forms.forEach((form, index) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <a href="${form.url}" target="_blank">${form.name}</a>
-                <button class="delete-btn" onclick="deleteForm(${index})">Remove</button>
-            `;
-            grid.appendChild(card);
-        });
+    if (currentValue || currentRow.length > 0) {
+      currentRow.push(currentValue);
+      rows.push(currentRow);
     }
 
-    function deleteForm(index) {
-        let forms = JSON.parse(localStorage.getItem('myDashboardForms')) || [];
-        forms.splice(index, 1);
-        localStorage.setItem('myDashboardForms', JSON.stringify(forms));
-        displayForms();
-    }
+    const headers = rows.shift().map(header => header.trim());
+
+    return rows.map(row => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = row[index] || "";
+      });
+      return obj;
+    });
+  }
+
+  loadForms();
 </script>
 
 </body>
