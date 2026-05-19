@@ -240,22 +240,26 @@
       const csvText = await response.text();
 
       allForms = parseCSV(csvText)
-        .filter(row => row.Name && row.URL)
-        .map(row => {
-          const category = cleanValue(row.Category) || "General";
-          const colorValue = cleanValue(row.Color);
-
-          return {
-            timestamp: cleanValue(row.Timestamp),
-            email: cleanValue(row["Email Address"]),
-            name: cleanValue(row.Name),
-            url: cleanValue(row.URL),
-            responsesUrl: cleanValue(row.ReponsesURL),
-            category: category,
-            color: getCardColor(colorValue, category),
-            notes: cleanValue(row.Notes)
-          };
-        });
+          .filter(row => row.Name && row.URL)
+          .filter(row => {
+            const showValue = cleanValue(row.Show).toLowerCase();
+            return showValue === "" || showValue === "yes";
+          })
+          .map(row => {
+            const category = cleanValue(row.Category) || "General";
+            const colorValue = cleanValue(row.Color);
+        
+            return {
+              timestamp: cleanValue(row.Timestamp),
+              email: cleanValue(row["Email Address"]),
+              name: cleanValue(row.Name),
+              url: cleanValue(row.URL),
+              responsesUrl: cleanValue(row.ReponsesURL),
+              category: category,
+              color: getCardColor(colorValue, category),
+              notes: cleanValue(row.Notes)
+        };
+      });
 
       renderForms();
 
