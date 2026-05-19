@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cochran Forms Dashboard</title>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -14,7 +15,7 @@
     }
 
     .container {
-      max-width: 950px;
+      max-width: 1050px;
       margin: 0 auto;
     }
 
@@ -41,18 +42,35 @@
       align-items: center;
     }
 
-    input {
+    input,
+    select {
       flex: 1;
-      min-width: 220px;
+      min-width: 190px;
       padding: 10px 12px;
       border: 1px solid #dadce0;
       border-radius: 6px;
       font-size: 15px;
+      background: white;
+    }
+
+    .add-link {
+      background: #1a73e8;
+      color: white;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .add-link:hover {
+      background: #1557b0;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 18px;
     }
 
@@ -61,30 +79,64 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      min-height: 105px;
+      min-height: 135px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      border-left: 5px solid #1a73e8;
+      border-left: 7px solid #1a73e8;
     }
 
-    .card a {
-      color: #1a73e8;
-      text-decoration: none;
-      font-weight: 700;
+    .card-title {
+      font-weight: 800;
       font-size: 17px;
       line-height: 1.3;
       word-break: break-word;
-    }
-
-    .card a:hover {
-      text-decoration: underline;
     }
 
     .category {
       color: #777;
       font-size: 13px;
       margin-top: 10px;
+      font-weight: 700;
+    }
+
+    .notes {
+      color: #555;
+      font-size: 13px;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .form-link,
+    .responses-link {
+      display: inline-block;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+
+    .form-link {
+      color: white;
+    }
+
+    .responses-link {
+      background: #f1f3f4;
+      color: #444;
+    }
+
+    .responses-link:hover,
+    .form-link:hover {
+      text-decoration: none;
+      filter: brightness(0.95);
     }
 
     .section-title {
@@ -105,14 +157,39 @@
     }
   </style>
 </head>
+
 <body>
 
 <div class="container">
   <h1>📋 Cochran Forms Dashboard</h1>
-  <p class="note">Quick links to office forms. Add or edit forms in the Google Sheet, then refresh this page.</p>
+  <p class="note">Quick links to office forms. Submit a new form through Google Forms, then refresh this page.</p>
 
   <div class="toolbar">
     <input type="text" id="searchInput" placeholder="Search forms...">
+
+    <select id="categoryFilter">
+      <option value="All">All Categories</option>
+      <option value="Office">Office</option>
+      <option value="Finance">Finance</option>
+      <option value="Facilities">Facilities</option>
+      <option value="Care">Care</option>
+      <option value="Events">Events</option>
+      <option value="Urgent">Urgent</option>
+      <option value="General">General</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <select id="sortSelect">
+      <option value="category">Sort by Category</option>
+      <option value="az">Sort A to Z</option>
+      <option value="za">Sort Z to A</option>
+      <option value="newest">Newest First</option>
+      <option value="oldest">Oldest First</option>
+    </select>
+
+    <a class="add-link" href="https://forms.gle/QsAkehNUojrjeSJx5" target="_blank" rel="noopener noreferrer">
+      Add New Form
+    </a>
   </div>
 
   <div id="formsArea">
@@ -123,9 +200,32 @@
 <script>
   const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl-p5DzRd54AUDAp4rRT3v00Ud9V8oOsErphobnoSUZeVmDuyFS9rNtHfe9O8Rg-zoNts4_4rGBt1e/pub?gid=0&single=true&output=csv";
 
+  const colorMap = {
+    Office: "#1a73e8",
+    Finance: "#188038",
+    Facilities: "#f57c00",
+    Care: "#7e3ff2",
+    Events: "#00897b",
+    Urgent: "#d93025",
+    General: "#5f6368",
+    Other: "#795548",
+
+    Blue: "#1a73e8",
+    Green: "#188038",
+    Purple: "#7e3ff2",
+    Orange: "#f57c00",
+    Red: "#d93025",
+    Gold: "#fbbc04",
+    Teal: "#00897b",
+    Gray: "#5f6368",
+    Brown: "#795548"
+  };
+
   let allForms = [];
 
   document.getElementById("searchInput").addEventListener("input", renderForms);
+  document.getElementById("categoryFilter").addEventListener("change", renderForms);
+  document.getElementById("sortSelect").addEventListener("change", renderForms);
 
   async function loadForms() {
     const formsArea = document.getElementById("formsArea");
@@ -141,18 +241,29 @@
 
       allForms = parseCSV(csvText)
         .filter(row => row.Name && row.URL)
-        .map(row => ({
-          name: row.Name.trim(),
-          url: row.URL.trim(),
-          category: row.Category ? row.Category.trim() : "Forms"
-        }));
+        .map(row => {
+          const category = cleanValue(row.Category) || "General";
+          const colorValue = cleanValue(row.Color);
+
+          return {
+            timestamp: cleanValue(row.Timestamp),
+            email: cleanValue(row["Email Address"]),
+            name: cleanValue(row.Name),
+            url: cleanValue(row.URL),
+            responsesUrl: cleanValue(row.ReponsesURL),
+            category: category,
+            color: getCardColor(colorValue, category),
+            notes: cleanValue(row.Notes)
+          };
+        });
 
       renderForms();
 
     } catch (error) {
       formsArea.innerHTML = `
         <div class="message error">
-          Forms could not be loaded. Check that the Google Sheet has columns named Name, URL, and Category.
+          Forms could not be loaded. Check that the published Sheet tab has these columns:
+          Timestamp, Email Address, Name, URL, Category, Color, Notes, ReponsesURL.
         </div>
       `;
       console.error(error);
@@ -162,29 +273,46 @@
   function renderForms() {
     const formsArea = document.getElementById("formsArea");
     const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+    const categoryFilter = document.getElementById("categoryFilter").value;
+    const sortMode = document.getElementById("sortSelect").value;
 
-    const filteredForms = allForms.filter(form => {
-      return (
+    let filteredForms = allForms.filter(form => {
+      const matchesSearch =
         form.name.toLowerCase().includes(searchTerm) ||
-        form.category.toLowerCase().includes(searchTerm)
-      );
+        form.category.toLowerCase().includes(searchTerm) ||
+        form.notes.toLowerCase().includes(searchTerm);
+
+      const matchesCategory =
+        categoryFilter === "All" || form.category === categoryFilter;
+
+      return matchesSearch && matchesCategory;
     });
+
+    filteredForms = sortForms(filteredForms, sortMode);
 
     if (filteredForms.length === 0) {
       formsArea.innerHTML = '<div class="message">No matching forms found.</div>';
       return;
     }
 
+    formsArea.innerHTML = "";
+
+    if (sortMode === "category") {
+      renderGroupedByCategory(formsArea, filteredForms);
+    } else {
+      renderSingleGrid(formsArea, filteredForms);
+    }
+  }
+
+  function renderGroupedByCategory(formsArea, forms) {
     const grouped = {};
 
-    filteredForms.forEach(form => {
+    forms.forEach(form => {
       if (!grouped[form.category]) {
         grouped[form.category] = [];
       }
       grouped[form.category].push(form);
     });
-
-    formsArea.innerHTML = "";
 
     Object.keys(grouped).sort().forEach(category => {
       const section = document.createElement("section");
@@ -197,28 +325,138 @@
       grid.className = "grid";
 
       grouped[category].forEach(form => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const link = document.createElement("a");
-        link.href = form.url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = form.name;
-
-        const categoryLabel = document.createElement("div");
-        categoryLabel.className = "category";
-        categoryLabel.textContent = form.category;
-
-        card.appendChild(link);
-        card.appendChild(categoryLabel);
-        grid.appendChild(card);
+        grid.appendChild(createCard(form));
       });
 
       section.appendChild(title);
       section.appendChild(grid);
       formsArea.appendChild(section);
     });
+  }
+
+  function renderSingleGrid(formsArea, forms) {
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    forms.forEach(form => {
+      grid.appendChild(createCard(form));
+    });
+
+    formsArea.appendChild(grid);
+  }
+
+  function createCard(form) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.borderLeftColor = form.color;
+
+    const title = document.createElement("div");
+    title.className = "card-title";
+    title.textContent = form.name;
+    title.style.color = form.color;
+
+    const categoryLabel = document.createElement("div");
+    categoryLabel.className = "category";
+    categoryLabel.textContent = form.category;
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    const formLink = document.createElement("a");
+    formLink.className = "form-link";
+    formLink.href = form.url;
+    formLink.target = "_blank";
+    formLink.rel = "noopener noreferrer";
+    formLink.textContent = "Open Form";
+    formLink.style.backgroundColor = form.color;
+
+    actions.appendChild(formLink);
+
+    if (form.responsesUrl) {
+      const responsesLink = document.createElement("a");
+      responsesLink.className = "responses-link";
+      responsesLink.href = form.responsesUrl;
+      responsesLink.target = "_blank";
+      responsesLink.rel = "noopener noreferrer";
+      responsesLink.textContent = "Responses";
+      actions.appendChild(responsesLink);
+    }
+
+    card.appendChild(title);
+    card.appendChild(categoryLabel);
+    card.appendChild(actions);
+
+    if (form.notes) {
+      const notes = document.createElement("div");
+      notes.className = "notes";
+      notes.textContent = form.notes;
+      card.appendChild(notes);
+    }
+
+    return card;
+  }
+
+  function sortForms(forms, sortMode) {
+    const sorted = [...forms];
+
+    if (sortMode === "az") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    if (sortMode === "za") {
+      sorted.sort((a, b) => b.name.localeCompare(a.name));
+    }
+
+    if (sortMode === "category") {
+      sorted.sort((a, b) => {
+        const categoryCompare = a.category.localeCompare(b.category);
+        if (categoryCompare !== 0) return categoryCompare;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    if (sortMode === "newest") {
+      sorted.sort((a, b) => {
+        return parseDate(b.timestamp) - parseDate(a.timestamp);
+      });
+    }
+
+    if (sortMode === "oldest") {
+      sorted.sort((a, b) => {
+        return parseDate(a.timestamp) - parseDate(b.timestamp);
+      });
+    }
+
+    return sorted;
+  }
+
+  function getCardColor(colorValue, category) {
+    if (colorValue && colorMap[colorValue]) {
+      return colorMap[colorValue];
+    }
+
+    if (colorValue && isValidHex(colorValue)) {
+      return colorValue;
+    }
+
+    if (category && colorMap[category]) {
+      return colorMap[category];
+    }
+
+    return "#1a73e8";
+  }
+
+  function isValidHex(value) {
+    return /^#([0-9A-F]{3}){1,2}$/i.test(value);
+  }
+
+  function cleanValue(value) {
+    return value ? String(value).trim() : "";
+  }
+
+  function parseDate(value) {
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? 0 : date.getTime();
   }
 
   function parseCSV(text) {
@@ -246,6 +484,7 @@
           currentRow = [];
           currentValue = "";
         }
+
         if (char === "\r" && nextChar === "\n") {
           i++;
         }
